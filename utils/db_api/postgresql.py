@@ -3,13 +3,14 @@ from typing import Union
 import asyncpg
 from asyncpg import Connection
 from asyncpg.pool import Pool
-
+from datetime import datetime
 from data import config
 
 
 class Database:
     def __init__(self):
         self.pool: Union[Pool, None] = None
+        self.now = datetime.now()
 
     async def create(self):
         self.pool = await asyncpg.create_pool(
@@ -41,17 +42,6 @@ class Database:
                     result = await connection.execute(command, *args)
             return result
 
-    async def create_table_users(self):
-        sql = """
-        CREATE TABLE IF NOT EXISTS Users (
-        id SERIAL PRIMARY KEY,
-        full_name VARCHAR(255) NOT NULL,
-        username varchar(255) NULL,
-        telegram_id BIGINT NOT NULL UNIQUE
-        );
-        """
-        await self.execute(sql, execute=True)
-
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join(
@@ -60,28 +50,50 @@ class Database:
         return sql, tuple(parameters.values())
 
     async def add_user(self, full_name, username, telegram_id):
-        sql = "INSERT INTO users (full_name, username, telegram_id) VALUES($1, $2, $3) returning *"
-        return await self.execute(sql, full_name, username, telegram_id, fetchrow=True)
+        sql = "INSERT INTO main_user (full_name, username, telegram_id, created, updated) VALUES($1, $2, $3, $4, $5) returning *"
+        return await self.execute(sql, full_name, username, telegram_id, self.now, self.now, fetchrow=True)
+
+    async def add_music(self, title, file_id, keywords, show=True):
+        sql = "INSERT INTO main_fileid (title, file_id, keywords, show, created, updated) VALUES ($1, $2, $3, $4, $5, $6) returning *"
+        return await self.execute(sql, title, file_id, keywords, show, self.now, self.now, fetchrow=True)
+
+    async def select_all_keywords(self):
+        sql = """SELECT keywords FROM main_fileid WHERE show=True"""
+        return await self.execute(sql, fetch=True)
+
+    async def get_fileids(self, **kwargs):
+        sql = "SELECT * FROM main_fileid WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetch=True)
+
+    async def select_all_fileid(self):
+        sql = "SELECT file_id FROM main_fileid"
+        return await self.execute(sql, fetch=True)
+
+    async def select_file(self, **kwargs):
+        sql = "SELECT * FROM main_fileid WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
 
     async def select_all_users(self):
-        sql = "SELECT * FROM Users"
+        sql = "SELECT * FROM main_user"
         return await self.execute(sql, fetch=True)
 
     async def select_user(self, **kwargs):
-        sql = "SELECT * FROM Users WHERE "
+        sql = "SELECT * FROM main_user WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
 
     async def count_users(self):
-        sql = "SELECT COUNT(*) FROM Users"
+        sql = "SELECT COUNT(*) FROM main_user"
         return await self.execute(sql, fetchval=True)
 
     async def update_user_username(self, username, telegram_id):
-        sql = "UPDATE Users SET username=$1 WHERE telegram_id=$2"
+        sql = "UPDATE main_user SET username=$1 WHERE telegram_id=$2"
         return await self.execute(sql, username, telegram_id, execute=True)
 
     async def delete_users(self):
-        await self.execute("DELETE FROM Users WHERE TRUE", execute=True)
+        await self.execute("DELETE FROM main_user WHERE TRUE", execute=True)
 
     async def drop_users(self):
-        await self.execute("DROP TABLE Users", execute=True)
+        await self.execute("DROP TABLE main_user", execute=True)
