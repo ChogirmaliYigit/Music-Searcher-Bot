@@ -21,13 +21,13 @@ async def getmusic(message: types.Message, state: FSMContext):
 
     # Make audio duration
     if duration < 60:
-        duration = f'0:{duration}'
+        duration = f'0:{duration if duration >= 10 else f"0{duration}"}'
     elif duration == 60:
         duration = f'1:00'
     elif duration > 60:
         minuts = duration // 60
         seconds = duration % 60
-        duration = f'{minuts}:{seconds}'
+        duration = f'{minuts}:{seconds if seconds >= 10 else f"0{seconds}"}'
     
     # Makke audio size
     if file_size >= 1073741824:
@@ -45,6 +45,8 @@ async def getmusic(message: types.Message, state: FSMContext):
     # Make audio title
     if title:
         title += f' | {duration} | {file_size}'
+    else:
+        title = 'Unknown'
     if performer:
         title = f'{performer} - {title}'
 
@@ -56,7 +58,8 @@ async def getmusic(message: types.Message, state: FSMContext):
         new_keywords += f'{keyword.strip()}'
 
     try:
-        await db.add_music(title=title, file_id=file_id, keywords=new_keywords)
+        file = await db.add_fileid(title=title, file_id=file_id)
+        await db.add_keyword(content=new_keywords, file_id=file.get('id'))
         await message.answer(text=f'<code>{title}</code> bazaga qo\'shildi!')
     except Exception as error:
         print(error)

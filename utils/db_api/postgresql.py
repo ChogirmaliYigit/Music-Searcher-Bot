@@ -53,18 +53,27 @@ class Database:
         sql = "INSERT INTO main_user (full_name, username, telegram_id, created, updated) VALUES($1, $2, $3, $4, $5) returning *"
         return await self.execute(sql, full_name, username, telegram_id, self.now, self.now, fetchrow=True)
 
-    async def add_music(self, title, file_id, keywords, show=True):
-        sql = "INSERT INTO main_fileid (title, file_id, keywords, show, created, updated) VALUES ($1, $2, $3, $4, $5, $6) returning *"
-        return await self.execute(sql, title, file_id, keywords, show, self.now, self.now, fetchrow=True)
+    async def add_fileid(self, title, file_id, show=True):
+        sql = "INSERT INTO main_fileid (title, file_id, show, created, updated) VALUES ($1, $2, $3, $4, $5) returning *"
+        return await self.execute(sql, title, file_id, show, self.now, self.now, fetchrow=True)
+
+    async def add_keyword(self, content, file_id):
+        sql = "INSERT INTO main_keyword (content, file_id, created, updated) VALUES ($1, $2, $3, $4) returning *"
+        return await self.execute(sql, content, file_id, self.now, self.now, fetchrow=True)
 
     async def select_all_keywords(self):
-        sql = """SELECT keywords FROM main_fileid WHERE show=True"""
+        sql = """SELECT content FROM main_keyword"""
         return await self.execute(sql, fetch=True)
+
+    async def get_files_by_keyword(self, **kwargs):
+        sql = """SELECT * FROM main_keyword WHERE """
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
 
     async def get_fileids(self, **kwargs):
         sql = "SELECT * FROM main_fileid WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
-        return await self.execute(sql, *parameters, fetch=True)
+        return await self.execute(sql, *parameters, fetchrow=True)
 
     async def select_all_fileid(self):
         sql = "SELECT file_id FROM main_fileid"
@@ -86,6 +95,10 @@ class Database:
 
     async def count_users(self):
         sql = "SELECT COUNT(*) FROM main_user"
+        return await self.execute(sql, fetchval=True)
+    
+    async def count_musics(self):
+        sql = "SELECT COUNT(*) FROM main_fileid"
         return await self.execute(sql, fetchval=True)
 
     async def update_user_username(self, username, telegram_id):
