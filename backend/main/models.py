@@ -39,3 +39,12 @@ class Keyword(models.Model):
 
     def __str__(self) -> str:
         return f'Keyword - {self.content}'
+
+
+class Audio(models.Model):
+    link = models.TextField()
+    file_id = models.TextField()
+    caption = models.TextField()
+
+    def __str__(self) -> str:
+        return f'Audio - {self.caption}'

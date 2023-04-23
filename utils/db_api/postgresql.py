@@ -61,6 +61,10 @@ class Database:
         sql = "INSERT INTO main_keyword (content, file_id, created, updated) VALUES ($1, $2, $3, $4) returning *"
         return await self.execute(sql, content, file_id, self.now, self.now, fetchrow=True)
 
+    async def add_audio(self, link, file_id, caption):
+        sql = "INSERT INTO main_audio (link, file_id, caption) VALUES ($1, $2, $3) returning *"
+        return await self.execute(sql, link, file_id, caption, fetchrow=True)
+
     async def select_all_keywords(self):
         sql = """SELECT content FROM main_keyword"""
         return await self.execute(sql, fetch=True)
@@ -81,6 +85,11 @@ class Database:
 
     async def select_file(self, **kwargs):
         sql = "SELECT * FROM main_fileid WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_audio(self, **kwargs):
+        sql = "SELECT * FROM main_audio WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
 
