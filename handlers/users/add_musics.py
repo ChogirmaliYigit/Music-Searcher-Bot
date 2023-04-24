@@ -29,7 +29,7 @@ async def getmusic(message: types.Message, state: FSMContext):
         seconds = duration % 60
         duration = f'{minuts}:{seconds if seconds >= 10 else f"0{seconds}"}'
     
-    # Makke audio size
+    # Make audio size
     if file_size >= 1073741824:
         gb = round(file_size / 1073741824, 2)
         file_size = f'{gb} Gb'
