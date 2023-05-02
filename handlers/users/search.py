@@ -11,7 +11,7 @@ from keyboards.inline.buttons import make_musics_markup
 from states.states import UserState
 
 
-@dp.message_handler(Text(startswith="https://www.youtube.com/" or "https://youtu.be/" or "https://www.youtube.com/" or "http://youtu.be/"), state="*")
+@dp.message_handler(Text(startswith="https://www.youtube.com/" or "https://www.youtu.be/" or "https://youtube.com/" or "https://youtu.be/"), state="*")
 async def get_audio(message:types.Message, state: FSMContext):
     link=message.text
     audio = await db.select_audio(link=link)
@@ -34,10 +34,9 @@ async def get_audio(message:types.Message, state: FSMContext):
                 if buffer:
                     label = False
                 for i in range(1, total_file_size, total_file_size // 100):
-                    await asyncio.sleep(0.5)
-                    await loading.edit_text(text=f"{(i // total_file_size) * 100}%  yuklanmoqda...")
-                    await message.answer_chat_action(action="upload_audio")
-
+                    await loading.edit_text(text=f"{round(i / total_file_size, 2) * 100}%  yuklanmoqda...")
+            await loading.edit_text(text="🔽 Yuborilmoqda...")
+            await message.answer_chat_action(action="upload_audio")
             audio = await message.answer_audio(audio=buffer, caption=filename)
             await loading.delete()
             await db.add_audio(link=link, file_id=audio.audio.file_id, caption=audio.caption)
