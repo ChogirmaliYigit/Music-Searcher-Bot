@@ -7,6 +7,7 @@ from loader import dp, db
 from keyboards.inline.buttons import make_musics_markup
 
 
+
 @dp.message_handler(Text(startswith="https://www.youtube.com/" or "https://www.youtu.be/" or "https://youtube.com/" or "https://youtu.be/" or "http://www.youtube.com/" or "http://www.youtu.be/" or "http://youtube.com/" or "http://youtu.be/"), state="*")
 async def get_audio(message:types.Message, state: FSMContext):
     link = message.text
