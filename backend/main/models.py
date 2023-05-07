@@ -1,10 +1,9 @@
 from django.db import models
 
-
 class User(models.Model):
     full_name = models.CharField(max_length=500)
     username = models.CharField(max_length=400, null=True, blank=True)
-    telegram_id = models.PositiveIntegerField()
+    telegram_id = models.PositiveBigIntegerField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -13,8 +12,8 @@ class User(models.Model):
 
 
 class FileId(models.Model):
+    title = models.TextField(null=True, blank=True, default=None)
     file_id = models.CharField(max_length=1000)
-    keywords = models.TextField()
     show = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -32,3 +31,20 @@ class Download(models.Model):
         return f'Downloaded file - {self.file.file_id}'
 
 
+class Keyword(models.Model):
+    content = models.TextField()
+    file = models.ForeignKey(FileId, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f'Keyword - {self.content}'
+
+
+class Audio(models.Model):
+    link = models.TextField()
+    file_id = models.TextField()
+    caption = models.TextField()
+
+    def __str__(self) -> str:
+        return f'Audio - {self.caption}'
