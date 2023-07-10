@@ -57,3 +57,21 @@ async def make_musics_markup(user_search, number=0):
         msg = ""
 
     return markup, msg
+
+
+async def make_categories_markup(categories):
+    markup = InlineKeyboardMarkup(row_width=2)
+    for cat in categories:
+        audios = await db.select_all_fileids(category_id=cat['id'])
+        if audios:
+            markup.insert(InlineKeyboardButton(text=cat['title'], callback_data=cat['title']))
+    return markup
+
+
+def make_audios_markup(audios, number=0):
+    markup = InlineKeyboardMarkup(row_width=5)
+    cnt = 0
+    for audio in audios[number:number+10]:
+        cnt += 1
+        markup.insert(InlineKeyboardButton(text=cnt, callback_data=audio['id']))
+    markup.row(InlineKeyboardButton(text="⬅️ Oldingi", callback_data=f'previous_{number}'), InlineKeyboardButton(text="Keyingi ➡️", callback_data=f"next_{number}"))

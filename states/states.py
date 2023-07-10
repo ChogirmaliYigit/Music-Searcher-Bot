@@ -7,4 +7,6 @@ class AdminStates(StatesGroup):
 
 
 class UserState(StatesGroup):
+    get_category = State()
+    search_music_by_cat = State()
     send_music = State()

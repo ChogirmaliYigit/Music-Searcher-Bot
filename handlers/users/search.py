@@ -5,6 +5,7 @@ from pytube import YouTube
 from aiogram.dispatcher.filters.builtin import Text
 from loader import dp, db
 from keyboards.inline.buttons import make_musics_markup
+from states.states import UserState
 
 
 
@@ -46,19 +47,26 @@ async def get_audio(message:types.Message, state: FSMContext):
         await message.answer_chat_action(action="upload_audio")
         audio = await message.answer_audio(audio=audio.get('file_id'), caption=audio.get('caption'))
 
-@dp.message_handler(state='*')
+@dp.message_handler(state=UserState.search_music_by_cat)
 async def create_search(message: types.Message, state: FSMContext):
-    await state.finish()
     user_search = message.text
-
-    markup, msg = await make_musics_markup(user_search=user_search)
-
-    if msg:
-        await message.answer(text=msg, reply_markup=markup)
+    data = await state.get_data()
+    cat_id = data.get('cat_id')
+    audios = await db.select_all_fileids(category_id=cat_id)
+    if audios:
+        await message.answer(text="qo'shiq topildi")
     else:
-        await message.reply(text=f"❌ <code>{message.text}</code> bo'yicha ma'lumot topilmadi! ❌")
+        await message.reply(text=f"{message.text} bo'yicha hech qanday ma'lumot topilmadi")
 
-    await state.update_data({'user_search': user_search})
+    # user_search orqali api ga so'rov yuborish ishlanishi kerak
+
+@dp.callback_query_handler(state=UserState.get_category)
+async def get_category_user(call: types.CallbackQuery, state: FSMContext):
+    cat = await db.get_cat(title=call.data)
+    if cat:
+        await state.update_data(cat_id=cat['id'])
+        await call.message.answer(text=f"{cat['title']} kategoriyasi bo'yicha qo'shiqchi yoki qo'shiq nomini kiriting.")
+        await UserState.search_music_by_cat.set()
 
 
 @dp.callback_query_handler(state='*')

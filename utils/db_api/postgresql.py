@@ -69,6 +69,20 @@ class Database:
         sql = """SELECT content FROM main_keyword"""
         return await self.execute(sql, fetch=True)
 
+    async def select_all_categories(self):
+        sql = "SELECT * FROM main_category"
+        return await self.execute(sql, fetch=True)
+
+    async def get_cat(self, **kwargs):
+        sql = "SELECT * FROM main_category WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_all_fileids(self, **kwargs):
+        sql = "SELECT * FROM main_fileid WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetch=True)
+
     async def get_files_by_keyword(self, **kwargs):
         sql = """SELECT * FROM main_keyword WHERE """
         sql, parameters = self.format_args(sql, parameters=kwargs)

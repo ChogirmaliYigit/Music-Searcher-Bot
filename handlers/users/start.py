@@ -2,6 +2,8 @@ from aiogram import types
 from aiogram.dispatcher.filters.builtin import CommandStart
 from loader import dp, db, bot
 from data.config import ADMINS
+from states.states import UserState
+from keyboards.inline.buttons import make_categories_markup
 
 
 @dp.message_handler(CommandStart())
@@ -20,4 +22,6 @@ async def bot_start(message: types.Message):
         await bot.send_message(chat_id=ADMINS[0], text=msg)
     # user = await db.select_user(telegram_id=message.from_user.id)
     await bot.send_message(chat_id=ADMINS[0], text=f"@{name} bazaga oldin qo'shilgan")
-    await message.answer(f"Xush kelibsiz! @{name}")
+    categories = await db.select_all_categories()
+    await message.answer(f"Xush kelibsiz! @{name}", reply_markup=make_categories_markup(categories=categories))
+    await UserState.get_category.set()
